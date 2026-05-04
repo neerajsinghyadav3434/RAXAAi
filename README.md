@@ -608,7 +608,7 @@ npm run dev
 **Output**: App running at `http://localhost:3000`
 
 ### **Access the Application**
-- 🧠 **Smart Screening**: http://localhost:3000/adaptive-screening
+-  **Smart Screening**: http://localhost:3000/adaptive-screening
 - 📋 **Full Assessment**: http://localhost:3000/multi-disease  
 - 🔌 **Backend API**: http://localhost:8000
 - 📚 **API Docs**: http://localhost:8000/docs
