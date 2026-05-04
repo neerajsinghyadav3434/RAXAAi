@@ -33,8 +33,17 @@ const PORT = process.env.PORT || 8000;
 // ============================================================================
 
 // CORS Configuration
+const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || [];
 app.use(cors({
-  origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000'],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    // Allow any configured explicit origins
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    // Allow any localhost / 127.0.0.1 origin on any port (dev + preview tools)
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return callback(null, true);
+    callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']

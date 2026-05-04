@@ -9,7 +9,11 @@ import {
     Zap, 
     AlertCircle, 
     CheckCircle2,
-    Beaker
+    Beaker,
+    Lightbulb,
+    ChevronDown,
+    ChevronUp,
+    Stethoscope
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import StepProgress from './StepProgress';
@@ -119,6 +123,24 @@ const AdaptiveQuestionnaire: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [loadingStep, setLoadingStep] = useState(0);
     const [error, setError] = useState<string | null>(null);
+    const [healthTips, setHealthTips] = useState<Record<string, string[]>>({});
+    const [expandedExplain, setExpandedExplain] = useState<Record<string, boolean>>({});
+
+    useEffect(() => {
+        if (!finalResult || !Array.isArray(finalResult.top_diseases)) return;
+        finalResult.top_diseases.slice(0, 3).forEach(async (res: any) => {
+            if (!res?.disease || healthTips[res.disease]) return;
+            try {
+                const resp = await fetch(`${API_V2}/diseases/health-tips/${encodeURIComponent(res.disease)}`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    setHealthTips((prev: Record<string, string[]>) => ({ ...prev, [res.disease]: data.tips || [] }));
+                }
+            } catch {
+                // non-critical — silently skip if tips cannot be fetched
+            }
+        });
+    }, [finalResult]);
 
     const steps = ['Basics', 'Symptoms', 'Detection', 'Clinical', 'Report'];
     const currentStepIndex = steps.indexOf(currentStep === 'BASIC' ? 'Basics' : currentStep === 'SYMPTOMS' ? 'Symptoms' : currentStep === 'PRELIMINARY' ? 'Detection' : currentStep === 'CLINICAL' ? 'Clinical' : 'Report');
@@ -708,93 +730,209 @@ const handleAnswerChange = (id: string, value: any) => {
                                 key="final"
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="space-y-8 pb-20"
+                                className="space-y-6 pb-20"
                             >
-                                <div className="text-center mb-10">
-                                    <h2 className="text-3xl font-black text-slate-900 mb-2">Refined Clinical Results</h2>
-                                    <p className="text-slate-500 font-medium">Analysis powered by Raxa&apos;s multi-signal reasoning engine.</p>
+                                <div className="text-center mb-8">
+                                    <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 text-primary rounded-full text-xs font-black uppercase tracking-widest mb-4">
+                                        <Stethoscope className="h-4 w-4" />
+                                        Refined Clinical Results
+                                    </div>
+                                    <h2 className="text-3xl font-black text-slate-900 mb-2">Your AI Health Assessment</h2>
+                                    <p className="text-slate-500 font-medium">Powered by Raxa&apos;s multi-signal clinical reasoning engine.</p>
                                 </div>
 
-                                {finalResult.top_diseases.map((res: any, idx: number) => (
-                                    <div key={idx} className="premium-card p-8 md:p-12">
-                                        <div className="flex flex-col md:flex-row justify-between gap-6 mb-10">
-                                            <div>
-                                                <h3 className="text-2xl font-black text-slate-900 mb-3">{res.disease}</h3>
-                                                <div className="flex gap-2">
-                                                    <span className="px-3 py-1 bg-primary/5 text-primary text-[10px] font-black rounded-full border border-primary/10 uppercase tracking-widest">
-                                                        Confidence: {res.confidence}%
-                                                    </span>
-                                                    <span className="px-3 py-1 bg-slate-900 text-white text-[10px] font-black rounded-full uppercase tracking-widest">
-                                                        {res.confidence_level} Reliability
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <span className="text-4xl font-black text-slate-900">{res.risk_percentage}%</span>
-                                                <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Risk Score</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="h-3 bg-slate-100 rounded-full overflow-hidden mb-12">
-                                            <motion.div 
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${res.risk_percentage}%` }}
-                                                className={`h-full ${res.risk_percentage > 70 ? 'bg-rose-500' : res.risk_percentage > 40 ? 'bg-amber-500' : 'bg-primary'}`}
-                                            />
-                                        </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                            <div className="space-y-4">
-                                                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
-                                                    <Brain className="h-4 w-4" /> Supporting Signals
-                                                </h4>
-                                                <ul className="space-y-3">
-                                                    {res.explanation.supportingEvidence.map((e: string) => (
-                                                        <li key={e} className="flex gap-2 text-sm font-bold text-slate-700">
-                                                            <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" /> {e}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                            <div className="space-y-4">
-                                                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
-                                                    <Beaker className="h-4 w-4" /> Recommended Tests
-                                                </h4>
-                                                <div className="space-y-2">
-                                                    {res.recommended_tests.map((t: any) => (
-                                                        <div key={t.test} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                                            <p className="text-sm font-black text-slate-900">{t.test}</p>
-                                                            <p className="text-[10px] font-medium text-slate-400">{t.reason}</p>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-
+                                {/* Emergency warning at top if present */}
                                 {finalResult.emergency_warning && (
-                                    <div className="p-8 bg-rose-50 border-2 border-rose-100 rounded-3xl flex gap-5 items-center">
-                                        <div className="h-12 w-12 bg-rose-500 rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-rose-200">
-                                            <AlertCircle className="h-6 w-6 text-white" />
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.98 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="p-6 bg-rose-50 border-2 border-rose-200 rounded-3xl flex gap-4 items-start"
+                                    >
+                                        <div className="h-10 w-10 bg-rose-500 rounded-xl flex items-center justify-center shrink-0">
+                                            <AlertCircle className="h-5 w-5 text-white" />
                                         </div>
                                         <div>
-                                            <h3 className="font-black text-rose-900 text-lg">Emergency Alert</h3>
+                                            <h3 className="font-black text-rose-900 text-base mb-1">⚠️ Emergency Alert</h3>
                                             <p className="text-rose-700 font-medium text-sm">{finalResult.emergency_warning}</p>
                                         </div>
+                                    </motion.div>
+                                )}
+
+                                {/* Disease cards */}
+                                {finalResult.top_diseases.map((res: any, idx: number) => {
+                                    const riskPct: number = res.risk_percentage ?? 0;
+                                    const riskBg = riskPct > 65 ? 'bg-rose-500' : riskPct > 35 ? 'bg-amber-500' : 'bg-emerald-500';
+                                    const riskTextColor = riskPct > 65 ? 'text-rose-600' : riskPct > 35 ? 'text-amber-600' : 'text-emerald-600';
+                                    const riskBadgeBg = riskPct > 65 ? 'bg-rose-50 border-rose-100' : riskPct > 35 ? 'bg-amber-50 border-amber-100' : 'bg-emerald-50 border-emerald-100';
+                                    const isExplainOpen = !!expandedExplain[res.disease];
+                                    const tips: string[] = healthTips[res.disease] || [];
+
+                                    return (
+                                        <motion.div
+                                            key={idx}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: idx * 0.1 }}
+                                            className={`premium-card overflow-hidden ${idx === 0 ? 'ring-2 ring-primary/20' : ''}`}
+                                        >
+                                            {/* Card header */}
+                                            <div className="p-6 md:p-8">
+                                                <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
+                                                    <div className="flex-1">
+                                                        {idx === 0 && (
+                                                            <span className="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary text-[10px] font-black rounded-full uppercase tracking-widest mb-3">
+                                                                <Brain className="h-3 w-3" /> Primary Match
+                                                            </span>
+                                                        )}
+                                                        <h3 className="text-xl md:text-2xl font-black text-slate-900 mb-2">{res.disease}</h3>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            <span className={`px-3 py-1 border text-[10px] font-black rounded-full uppercase tracking-widest ${riskBadgeBg} ${riskTextColor}`}>
+                                                                {res.risk_level || (riskPct > 65 ? 'High' : riskPct > 35 ? 'Medium' : 'Low')} Risk
+                                                            </span>
+                                                            <span className="px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-black rounded-full uppercase tracking-widest">
+                                                                {res.confidence_level} Confidence
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right shrink-0">
+                                                        <span className={`text-4xl font-black ${riskTextColor}`}>{riskPct}%</span>
+                                                        <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Risk Score</span>
+                                                        <span className="text-xs text-slate-400 font-semibold">{res.confidence}% AI confidence</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Risk progress bar */}
+                                                <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden mb-6">
+                                                    <motion.div
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${riskPct}%` }}
+                                                        transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
+                                                        className={`h-full ${riskBg} rounded-full`}
+                                                    />
+                                                </div>
+
+                                                {/* Supporting evidence + Recommended tests */}
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    {res.explanation?.supportingEvidence?.length > 0 && (
+                                                        <div className="space-y-3">
+                                                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                                                <Brain className="h-3.5 w-3.5" /> Supporting Signals
+                                                            </h4>
+                                                            <ul className="space-y-2">
+                                                                {res.explanation.supportingEvidence.slice(0, 4).map((e: string) => (
+                                                                    <li key={e} className="flex gap-2 text-sm font-semibold text-slate-700">
+                                                                        <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                                                                        {e}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+                                                    {res.recommended_tests?.length > 0 && (
+                                                        <div className="space-y-3">
+                                                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                                                <Beaker className="h-3.5 w-3.5" /> Recommended Tests
+                                                            </h4>
+                                                            <div className="space-y-2">
+                                                                {res.recommended_tests.slice(0, 3).map((t: any) => (
+                                                                    <div key={t.test} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                                                        <p className="text-sm font-bold text-slate-900">{t.test}</p>
+                                                                        {t.reason && <p className="text-[10px] text-slate-400 mt-0.5">{t.reason}</p>}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Explain Prediction collapsible */}
+                                            {res.explanation?.summary && (
+                                                <div className="border-t border-slate-100">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setExpandedExplain((prev: Record<string, boolean>) => ({ ...prev, [res.disease]: !prev[res.disease] }))}
+                                                        className="w-full flex items-center justify-between px-6 md:px-8 py-4 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                                                    >
+                                                        <span className="flex items-center gap-2">
+                                                            <Brain className="h-4 w-4 text-primary" />
+                                                            Why this result?
+                                                        </span>
+                                                        {isExplainOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                                    </button>
+                                                    <AnimatePresence>
+                                                        {isExplainOpen && (
+                                                            <motion.div
+                                                                initial={{ height: 0, opacity: 0 }}
+                                                                animate={{ height: 'auto', opacity: 1 }}
+                                                                exit={{ height: 0, opacity: 0 }}
+                                                                transition={{ duration: 0.2 }}
+                                                                className="overflow-hidden"
+                                                            >
+                                                                <div className="px-6 md:px-8 pb-6 pt-2 bg-slate-50 text-sm text-slate-600 leading-relaxed">
+                                                                    {res.explanation.summary}
+                                                                </div>
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </div>
+                                            )}
+
+                                            {/* Health Tips */}
+                                            {tips.length > 0 && (
+                                                <div className="border-t border-slate-100 px-6 md:px-8 py-6">
+                                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2 mb-4">
+                                                        <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
+                                                        Health Tips for {res.disease}
+                                                    </h4>
+                                                    <ul className="space-y-2.5">
+                                                        {tips.map((tip: string, tipIdx: number) => (
+                                                            <li key={tipIdx} className="flex gap-3 text-sm text-slate-700">
+                                                                <span className="shrink-0 h-5 w-5 flex items-center justify-center rounded-full bg-amber-100 text-amber-700 text-[10px] font-black">
+                                                                    {tipIdx + 1}
+                                                                </span>
+                                                                {tip}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                        </motion.div>
+                                    );
+                                })}
+
+                                {/* Urgency & Interpretation panel */}
+                                {(finalResult.urgency || finalResult.interpretation) && (
+                                    <div className="premium-card p-6 md:p-8">
+                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Clinical Summary</h4>
+                                        {finalResult.urgency && (
+                                            <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10 mb-4">
+                                                <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                                                <div>
+                                                    <p className="text-xs font-black text-primary uppercase tracking-wider mb-1">Urgency</p>
+                                                    <p className="text-sm font-medium text-slate-700">{finalResult.urgency}</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {finalResult.interpretation && (
+                                            <p className="text-sm text-slate-600 leading-relaxed">{finalResult.interpretation}</p>
+                                        )}
+                                        <p className="mt-4 text-[10px] text-slate-400 font-semibold">
+                                            ⚠️ This is an AI-estimated risk assessment, NOT a medical diagnosis. Always consult a healthcare professional.
+                                        </p>
                                     </div>
                                 )}
 
-                                <div className="text-center pt-10">
-                                    <button 
+                                <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                                    <button
                                         onClick={() => window.location.href = '/health-report'}
-                                        className="px-10 py-5 bg-slate-900 text-white font-black rounded-2xl shadow-xl hover:scale-105 transition-all"
+                                        className="flex-1 px-8 py-4 bg-slate-900 text-white font-black rounded-2xl shadow-xl hover:bg-primary transition-all text-center"
                                     >
                                         View Full Digital Report
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={resetAdaptiveScreening}
-                                        className="block mx-auto mt-6 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-slate-900"
+                                        className="flex-1 px-8 py-4 border-2 border-slate-200 text-slate-600 font-black rounded-2xl hover:border-slate-300 hover:bg-slate-50 transition-all"
                                     >
                                         Start New Analysis
                                     </button>

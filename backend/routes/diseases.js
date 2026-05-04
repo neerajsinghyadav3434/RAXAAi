@@ -197,6 +197,209 @@ router.get('/category/:categoryName', (req, res) => {
   }
 });
 
+// Disease-specific health tips used by the frontend results page
+const HEALTH_TIPS = {
+  'Tuberculosis': [
+    'Complete the full TB treatment course — stopping early causes drug resistance.',
+    'Cover your mouth when coughing; use a mask in crowded places.',
+    'Eat a high-protein diet (eggs, dal, meat) to support lung recovery.',
+    'Get a chest X-ray follow-up after 2 months of treatment.',
+    'Inform close contacts so they can get tested.'
+  ],
+  'Dengue': [
+    'Rest completely and drink plenty of fluids (ORS, coconut water, juices).',
+    'Monitor platelet count daily if fever persists beyond 3 days.',
+    'Avoid NSAIDs (ibuprofen, aspirin) — use paracetamol only for fever.',
+    'Use mosquito nets and repellents; eliminate standing water around home.',
+    'Seek emergency care if you notice bleeding gums, black stools, or severe abdominal pain.'
+  ],
+  'Malaria': [
+    'Complete the full anti-malarial course even after feeling better.',
+    'Sleep under insecticide-treated nets, especially during peak mosquito hours (dusk-dawn).',
+    'Stay hydrated and monitor for signs of severe malaria (confusion, yellow eyes).',
+    'Get a repeat blood smear after 48 hours if fever persists.',
+    'Avoid travel to high-malaria areas without prophylaxis.'
+  ],
+  'Type 2 Diabetes': [
+    'Check fasting blood glucose at least twice a week; target < 126 mg/dL.',
+    'Follow a low-glycemic diet: avoid white rice, sugary drinks, and refined flour.',
+    'Walk 30 minutes daily — exercise lowers blood sugar without medication.',
+    'Never skip meals; consistent meal timing prevents sugar spikes.',
+    'Inspect your feet daily for cuts or sores that do not heal.'
+  ],
+  'Hypertension': [
+    'Reduce salt intake to less than 5 g/day (avoid pickles, processed food, papad).',
+    'Monitor BP daily at the same time each morning before meals.',
+    'Practice deep breathing or meditation for 10 minutes daily to reduce stress.',
+    'Limit alcohol to fewer than 2 units per day.',
+    'Take medications at the same time every day — never stop without consulting your doctor.'
+  ],
+  'Heart Disease': [
+    'Follow a heart-healthy diet: more vegetables, fish, whole grains; less saturated fat.',
+    'Stop smoking immediately — it doubles the risk of heart attack.',
+    'Monitor cholesterol and BP at least every 3 months.',
+    'Report chest tightness, jaw pain, or left arm pain to a doctor immediately.',
+    'Do light aerobic exercise (walking, cycling) as cleared by your cardiologist.'
+  ],
+  'Coronary Artery Disease': [
+    'Take prescribed antiplatelet therapy (aspirin/clopidogrel) as directed.',
+    'Avoid sudden strenuous activity; warm up before any exercise.',
+    'Keep a nitroglycerin spray accessible if prescribed.',
+    'Attend cardiac rehab sessions for structured recovery.',
+    'Manage stress — anger and anxiety directly raise coronary risk.'
+  ],
+  'Asthma': [
+    'Always carry your reliever inhaler (salbutamol) and use the spacer correctly.',
+    'Identify and avoid triggers: dust, smoke, cold air, pollen, pets.',
+    'Use a peak flow meter daily to monitor lung function.',
+    'Rinse your mouth after using a steroid inhaler to prevent thrush.',
+    'Get a flu vaccine every year — respiratory infections worsen asthma.'
+  ],
+  'COPD': [
+    'Quitting smoking is the single most effective treatment for COPD.',
+    'Practice pursed-lip breathing to manage breathlessness.',
+    'Use your inhalers in the correct sequence (SABA before ICS).',
+    'Pulmonary rehabilitation exercises significantly improve quality of life.',
+    'Get the pneumococcal and flu vaccines annually.'
+  ],
+  'Pneumonia': [
+    'Complete the full antibiotic course even if you feel better after 2–3 days.',
+    'Rest and drink warm fluids; deep breathing exercises help clear mucus.',
+    'Monitor oxygen saturation — seek emergency care if it drops below 92%.',
+    'Avoid smoking and second-hand smoke during recovery.',
+    'Follow up with a chest X-ray at 4–6 weeks to confirm clearance.'
+  ],
+  'COVID-19': [
+    'Isolate for at least 5 days from symptom onset; wear a mask around others.',
+    'Monitor oxygen saturation with a pulse oximeter; go to hospital if < 94%.',
+    'Stay well-hydrated and rest; take paracetamol for fever.',
+    'Seek emergency care for persistent chest pain, confusion, or bluish lips.',
+    'Long COVID symptoms (fatigue, brain fog) can persist — follow up with a doctor at 4 weeks.'
+  ],
+  'Hepatitis B': [
+    'Avoid alcohol completely — it accelerates liver damage in Hepatitis B.',
+    'Get regular liver function tests (LFT) every 6 months.',
+    'Ensure all household members are vaccinated against Hepatitis B.',
+    'Inform your dentist and surgeon of your status before any procedures.',
+    'Do not share razors, toothbrushes, or needles.'
+  ],
+  'Thyroid Disorder': [
+    'Take thyroid medication (levothyroxine) on an empty stomach, 30 min before food.',
+    'Do not take thyroid pills with calcium, iron, or antacids — they block absorption.',
+    'Check TSH levels every 6 months or after any dose change.',
+    'Avoid excessive iodine (large amounts of seaweed/kelp) without medical advice.',
+    'Fatigue and mood changes often improve within 6–8 weeks of correct treatment.'
+  ],
+  'Influenza': [
+    'Rest at home and avoid contact with others for at least 5 days.',
+    'Drink warm fluids and use steam inhalation for congestion relief.',
+    'Paracetamol is safe; avoid aspirin (especially in children).',
+    'Oseltamivir (Tamiflu) is most effective if started within 48 hours of onset.',
+    'Get the flu vaccine every year — the virus mutates seasonally.'
+  ],
+  'Typhoid': [
+    'Take the full antibiotic course (usually 10–14 days) without interruption.',
+    'Drink only boiled or bottled water; avoid raw vegetables and street food.',
+    'Wash hands thoroughly before eating and after using the toilet.',
+    'Rest and eat soft, easily digestible foods during recovery.',
+    'Notify public health if you are a food handler — typhoid is notifiable.'
+  ],
+  'Stroke': [
+    'Remember FAST: Face drooping, Arm weakness, Speech difficulty → Time to call emergency.',
+    'Control blood pressure daily — the #1 modifiable stroke risk factor.',
+    'Begin rehabilitation (physiotherapy, speech therapy) as early as possible.',
+    'Take anticoagulants or antiplatelets exactly as prescribed — never skip.',
+    'Stop smoking and reduce alcohol consumption immediately.'
+  ],
+  'Obesity': [
+    'Set a realistic goal: losing 5–10% of body weight improves most health markers.',
+    'Follow a calorie-deficit diet with high protein and fiber to preserve muscle.',
+    'Aim for 150 minutes of moderate aerobic activity per week.',
+    'Avoid crash diets — sustainable changes prevent weight regain.',
+    'Track meals with a food diary or app to maintain awareness of intake.'
+  ],
+  'PCOS': [
+    'A low-glycemic diet and weight loss of 5% can restore regular periods.',
+    'Exercise at least 150 minutes per week — it improves insulin sensitivity.',
+    'Manage stress; elevated cortisol worsens hormonal imbalance.',
+    'Follow up with a gynecologist for cycle regulation and fertility guidance.',
+    'Monitor blood glucose annually — PCOS significantly raises diabetes risk.'
+  ],
+  'High Cholesterol': [
+    'Cut saturated fats (red meat, full-fat dairy, fried food) from your diet.',
+    'Eat soluble fibre: oats, barley, apples, beans — it binds cholesterol in the gut.',
+    'Exercise 30 minutes most days — aerobic activity raises HDL ("good") cholesterol.',
+    'If on statins, take them at night with water; report any muscle pain immediately.',
+    'Recheck lipid profile in 3 months after dietary changes or medication adjustment.'
+  ],
+  'Arrhythmia': [
+    'Limit caffeine and alcohol — both can trigger irregular heartbeats.',
+    'Record episodes with a pulse oximeter or smartwatch to share with your cardiologist.',
+    'Take anti-arrhythmic medications at the same time daily without skipping.',
+    'Learn to take your pulse manually to detect irregular rhythms.',
+    'Seek emergency care for sustained palpitations, dizziness, or fainting.'
+  ],
+  "Alzheimer's Disease": [
+    'Engage in mentally stimulating activities: reading, puzzles, social interaction.',
+    'Physical exercise improves brain blood flow — aim for daily walks.',
+    'Establish consistent daily routines to reduce confusion.',
+    'Discuss cholinesterase inhibitor therapy with a neurologist.',
+    'Caregivers: join a support group and plan for future care needs early.'
+  ],
+  "Parkinson's Disease": [
+    'Physical therapy and exercise (especially balance training) slow progression.',
+    'Take levodopa medications at consistent times relative to meals.',
+    'Avoid high-protein meals close to levodopa doses — protein competes for absorption.',
+    'Use assistive devices and home modifications to prevent falls.',
+    'Join a Parkinson\'s support group for peer guidance and motivation.'
+  ],
+  'Osteoporosis': [
+    'Ensure adequate calcium (1000–1200 mg/day) and Vitamin D (600–800 IU/day).',
+    'Weight-bearing exercise (walking, dancing) strengthens bone density.',
+    'Avoid smoking and excessive alcohol — both accelerate bone loss.',
+    'Take bisphosphonates on an empty stomach with a full glass of water; stay upright for 30 min.',
+    'Fall-proof your home: remove loose rugs, improve lighting, add grab bars.'
+  ],
+  'Epilepsy': [
+    'Never miss anti-epileptic medication doses — even one missed dose can trigger a seizure.',
+    'Get 7–9 hours of sleep; sleep deprivation is a leading seizure trigger.',
+    'Avoid alcohol and recreational drugs entirely.',
+    'Wear a medical alert bracelet and educate close contacts on seizure first aid.',
+    'Do not drive or swim alone until confirmed seizure-free for the required period.'
+  ],
+  'Arthritis': [
+    'Maintain a healthy weight to reduce joint stress — each kg lost saves 4 kg of joint load.',
+    'Warm up before activity and use ice packs after to manage inflammation.',
+    'Physiotherapy strengthens muscles around affected joints.',
+    'Take DMARDs (for rheumatoid arthritis) consistently — they slow joint destruction.',
+    'Discuss joint-protective aids (splints, orthotic insoles) with your rheumatologist.'
+  ]
+};
+
+const DEFAULT_HEALTH_TIPS = [
+  'Consult a qualified healthcare professional for accurate diagnosis and treatment.',
+  'Monitor your symptoms and seek care if they worsen or new symptoms appear.',
+  'Stay hydrated, rest adequately, and maintain a balanced diet.',
+  'Keep a symptom diary to track changes over time.',
+  'Do not self-medicate — always follow medical advice.'
+];
+
+/**
+ * GET /api/v2/diseases/health-tips/:disease
+ * Returns actionable health tips for a specific disease.
+ * MUST be before /:name wildcard!
+ */
+router.get('/health-tips/:disease', (req, res) => {
+  const disease = decodeURIComponent(req.params.disease);
+  const tips = HEALTH_TIPS[disease] || DEFAULT_HEALTH_TIPS;
+  res.json({
+    disease,
+    tips,
+    count: tips.length,
+    isDefault: !HEALTH_TIPS[disease]
+  });
+});
+
 /**
  * GET /api/v2/diseases/:name
  * Get detailed information about a specific disease

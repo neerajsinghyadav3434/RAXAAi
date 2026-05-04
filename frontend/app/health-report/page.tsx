@@ -11,9 +11,15 @@ import {
   HeartPulse,
   Thermometer,
   AlertCircle,
+  Clock,
+  Trash2,
+  RotateCcw,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import { HealthReportData, loadHealthReport } from "../utils/reportStorage";
+import { HistoryEntry, clearHistory, deleteHistoryEntry, loadHistory, restoreFromHistory } from "../utils/healthHistory";
 
 const sampleReport: HealthReportData = {
   source: "sample",
@@ -82,10 +88,28 @@ function formatLabel(label: string) {
 export default function HealthReportPage() {
   const [report, setReport] = useState<HealthReportData | null>(null);
   const [downloadMessage, setDownloadMessage] = useState("");
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   useEffect(() => {
     setReport(loadHealthReport());
+    setHistory(loadHistory());
   }, []);
+
+  function handleRestoreHistory(entry: HistoryEntry) {
+    restoreFromHistory(entry);
+    setReport(entry.report);
+  }
+
+  function handleDeleteHistory(id: string) {
+    deleteHistoryEntry(id);
+    setHistory((prev: HistoryEntry[]) => prev.filter((e: HistoryEntry) => e.id !== id));
+  }
+
+  function handleClearHistory() {
+    clearHistory();
+    setHistory([]);
+  }
 
   const activeReport = report ?? sampleReport;
   const isSampleReport = report === null;
@@ -375,6 +399,80 @@ export default function HealthReportPage() {
                   </div>
                 </div>
               </div>
+            </motion.div>
+
+            {/* Screening History Panel */}
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+              className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm"
+            >
+              <button
+                type="button"
+                onClick={() => setHistoryOpen((prev: boolean) => !prev)}
+                className="w-full flex items-center justify-between gap-3"
+              >
+                <div className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-slate-500" />
+                  <h2 className="text-xl font-semibold text-slate-900">Screening History</h2>
+                  {history.length > 0 && (
+                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-slate-900 px-1.5 text-[10px] font-black text-white">{history.length}</span>
+                  )}
+                </div>
+                {historyOpen ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
+              </button>
+
+              {historyOpen && (
+                <div className="mt-5 space-y-3">
+                  {history.length === 0 ? (
+                    <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">
+                      No previous screenings saved yet. Complete a screening to see your history here.
+                    </p>
+                  ) : (
+                    <>
+                      <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                        {history.map((entry: HistoryEntry) => (
+                          <div key={entry.id} className="flex items-start gap-3 rounded-2xl bg-slate-50 p-3">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-slate-800 truncate">{entry.report.title}</p>
+                              <p className="text-[11px] text-slate-400 mt-0.5">{new Date(entry.savedAt).toLocaleString()}</p>
+                              {entry.report.possibleConditions?.[0] && (
+                                <p className="text-[11px] text-emerald-700 font-medium mt-0.5">{entry.report.possibleConditions[0].name} — {entry.report.possibleConditions[0].confidence}%</p>
+                              )}
+                            </div>
+                            <div className="flex gap-1 shrink-0">
+                              <button
+                                type="button"
+                                title="Restore this report"
+                                onClick={() => handleRestoreHistory(entry)}
+                                className="h-7 w-7 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-emerald-600 hover:border-emerald-200 transition-colors"
+                              >
+                                <RotateCcw className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                title="Delete this entry"
+                                onClick={() => handleDeleteHistory(entry.id)}
+                                className="h-7 w-7 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-200 transition-colors"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleClearHistory}
+                        className="w-full text-[11px] font-semibold text-slate-400 hover:text-rose-500 transition-colors pt-1"
+                      >
+                        Clear all history
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
             </motion.div>
 
             <motion.div

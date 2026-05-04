@@ -545,6 +545,8 @@ function toAdaptiveDiseaseResult(prediction, isPrimary) {
  * Professional-grade analysis using multi-signal clinical reasoning.
  */
 router.post('/analyze', (req, res) => {
+  const reqId = Date.now().toString(36);
+  console.log(`[PREDICT:${reqId}] /adaptive/analyze — symptoms: ${JSON.stringify(req.body.q1 || [])}`);
   try {
     let answers = { ...req.body };
     const { q1 } = answers;
@@ -612,6 +614,7 @@ router.post('/analyze', (req, res) => {
         : undefined);
 
     // 4. Final Response Construction
+    console.log(`[PREDICT:${reqId}] top=${diseaseScores.map(d => `${d.disease}(${d.confidence}%)`).join(', ')} urgency=${predictionResult.urgency}`);
     res.json({
       summary: {
         total_questions: Object.keys(answers).length,

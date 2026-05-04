@@ -13,7 +13,7 @@ export default function Home() {
       <Navbar />
 
       {/* HERO SECTION */}
-      <section className="relative overflow-hidden pt-32 pb-24 md:pt-48 md:pb-32 bg-slate-50">
+      <section className="relative overflow-hidden pt-24 pb-16 sm:pt-32 sm:pb-24 md:pt-48 md:pb-32 bg-slate-50">
         {/* Background Decorative Elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
           <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/5 rounded-full blur-3xl animate-pulse" />
@@ -39,7 +39,7 @@ export default function Home() {
             </motion.div>
 
             {/* BIG HEADLINE */}
-            <h1 className="text-5xl md:text-7xl font-black text-slate-900 mb-8 leading-[1.1] tracking-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-slate-900 mb-6 sm:mb-8 leading-[1.1] tracking-tight">
               {t.hero_title || "Predict Chronic Diseases"}
               <span className="block text-gradient">
                 {t.hero_subtitle || "Before Symptoms Appear"}
@@ -47,17 +47,17 @@ export default function Home() {
             </h1>
 
             {/* Subheading */}
-            <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto mb-12 leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-slate-500 max-w-2xl mx-auto mb-8 sm:mb-12 leading-relaxed">
               {t.hero_desc || "AI-powered personalized screening for early detection. Fast, accurate, and designed for proactive health management."}
             </p>
 
             {/* CTA BUTTONS */}
-            <div className="flex flex-col sm:flex-row gap-5 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 justify-center items-center w-full sm:w-auto">
               <Link href="/adaptive-screening">
                 <motion.button
                   whileHover={{ scale: 1.02, translateY: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="px-10 py-5 bg-slate-900 text-white font-bold rounded-2xl shadow-xl shadow-slate-900/20 flex items-center gap-3 text-lg transition-all"
+                  className="w-full sm:w-auto px-8 sm:px-10 py-4 sm:py-5 bg-slate-900 text-white font-bold rounded-2xl shadow-xl shadow-slate-900/20 flex items-center justify-center gap-3 text-base sm:text-lg transition-all"
                 >
                   <Brain className="h-6 w-6" />
                   {t.nav_smart_screening || "Smart Screening"}
@@ -69,7 +69,7 @@ export default function Home() {
                 <motion.button
                   whileHover={{ scale: 1.02, translateY: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="px-10 py-5 bg-white border-2 border-slate-200 text-slate-800 font-bold rounded-2xl flex items-center gap-3 text-lg transition-all hover:border-primary hover:text-primary"
+                  className="w-full sm:w-auto px-8 sm:px-10 py-4 sm:py-5 bg-white border-2 border-slate-200 text-slate-800 font-bold rounded-2xl flex items-center justify-center gap-3 text-base sm:text-lg transition-all hover:border-primary hover:text-primary"
                 >
                   <Activity className="h-6 w-6" />
                   {t.nav_full_assessment || "Full Assessment"}
@@ -93,18 +93,18 @@ export default function Home() {
       </section>
 
       {/* FEATURE CARDS */}
-      <section className="max-w-7xl mx-auto px-4 py-24">
+      <section className="max-w-7xl mx-auto px-4 py-12 sm:py-24">
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="grid md:grid-cols-3 gap-10"
+          className="grid md:grid-cols-3 gap-6 sm:gap-10"
         >
           {/* Card 1: Explainable AI */}
           <motion.div
             whileHover={{ translateY: -8 }}
-            className="premium-card p-10 group"
+            className="premium-card p-7 sm:p-10 group"
           >
             <div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center mb-8 shadow-lg group-hover:bg-primary transition-colors">
               <Brain className="h-8 w-8 text-white" />
@@ -120,7 +120,7 @@ export default function Home() {
           {/* Card 2: Multi-Disease Scan */}
           <motion.div
             whileHover={{ translateY: -8 }}
-            className="premium-card p-10 group"
+            className="premium-card p-7 sm:p-10 group"
           >
             <div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center mb-8 shadow-lg group-hover:bg-medical-teal transition-colors">
               <Heart className="h-8 w-8 text-white" />
@@ -136,7 +136,7 @@ export default function Home() {
           {/* Card 3: Privacy First */}
           <motion.div
             whileHover={{ translateY: -8 }}
-            className="premium-card p-10 group"
+            className="premium-card p-7 sm:p-10 group"
           >
             <div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center mb-8 shadow-lg group-hover:bg-accent transition-colors">
               <Shield className="h-8 w-8 text-white" />
@@ -152,27 +152,27 @@ export default function Home() {
       </section>
 
       {/* FOOTER CTA */}
-      <section className="max-w-7xl mx-auto px-4 py-24 text-center">
+      <section className="max-w-7xl mx-auto px-4 py-12 sm:py-24 text-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          className="bg-slate-900 rounded-[3rem] p-12 md:p-20 text-white shadow-2xl relative overflow-hidden"
+          className="bg-slate-900 rounded-[2rem] sm:rounded-[3rem] p-8 sm:p-12 md:p-20 text-white shadow-2xl relative overflow-hidden"
         >
           {/* Background Glow */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl" />
           
-          <h2 className="text-4xl md:text-5xl font-black mb-6 relative z-10">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4 sm:mb-6 relative z-10">
             {t.footer_cta_title || "Ready to prioritize your health?"}
           </h2>
-          <p className="text-slate-400 text-lg md:text-xl mb-12 max-w-2xl mx-auto relative z-10 leading-relaxed">
+          <p className="text-slate-400 text-base sm:text-lg md:text-xl mb-8 sm:mb-12 max-w-2xl mx-auto relative z-10 leading-relaxed">
             {t.footer_cta_desc || "Join thousands of users who trust RAXA for early disease detection and personalized health insights."}
           </p>
           <Link href="/adaptive-screening" className="relative z-10">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="px-12 py-5 bg-white text-slate-900 font-black rounded-2xl shadow-xl text-lg hover:bg-primary hover:text-white transition-all"
+              className="px-8 sm:px-12 py-4 sm:py-5 bg-white text-slate-900 font-black rounded-2xl shadow-xl text-base sm:text-lg hover:bg-primary hover:text-white transition-all"
             >
               {t.nav_smart_screening || "Start Smart Screening"}
             </motion.button>

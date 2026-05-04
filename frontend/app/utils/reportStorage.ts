@@ -1,5 +1,7 @@
 "use client";
 
+import { saveToHistory } from "./healthHistory";
+
 export const REPORT_STORAGE_KEY = "raxa_health_report";
 const LEGACY_RESULT_STORAGE_KEY = "raxa_result";
 const LEGACY_INPUTS_STORAGE_KEY = "raxa_inputs";
@@ -356,6 +358,7 @@ export function saveHealthReport(report: HealthReportData): void {
 
   try {
     window.localStorage.setItem(REPORT_STORAGE_KEY, JSON.stringify(report));
+    saveToHistory(report);
   } catch (error) {
     console.error("Failed to persist health report", error);
   }
